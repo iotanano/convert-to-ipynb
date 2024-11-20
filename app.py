@@ -55,18 +55,23 @@ uploaded_file = st.file_uploader("选择 Markdown 文件", type=["md"])
 
 if uploaded_file is not None:
     try:
+        # 获取上传文件名并移除扩展名
+        md_filename = uploaded_file.name.rsplit(".", 1)[0]
+
         # 解码上传文件内容
         md_content = uploaded_file.read().decode("utf-8")
 
         # 转换 Markdown 为 Jupyter Notebook
         ipynb_content = markdown_to_ipynb(md_content)
 
-        # 下载按钮
-        st.success("转换成功！点击下方按钮下载文件。")
+        # 下载按钮，文件名与 Markdown 文件名一致
+        ipynb_filename = f"{md_filename}.ipynb"
+
+        st.success(f"转换成功！点击下方按钮下载文件：{ipynb_filename}")
         st.download_button(
             label="下载 Notebook 文件",
             data=ipynb_content,
-            file_name="converted_notebook.ipynb",
+            file_name=ipynb_filename,
             mime="application/json"
         )
     except Exception as e:

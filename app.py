@@ -1,7 +1,6 @@
 import streamlit as st
 import json
-import os
-from io import StringIO, BytesIO
+from io import BytesIO
 
 def markdown_to_ipynb(md_content):
     """
@@ -45,10 +44,8 @@ def markdown_to_ipynb(md_content):
             "source": current_cell
         })
 
-    # 转换为 JSON 字节
-    ipynb_content = BytesIO()
-    json.dump(notebook, ipynb_content, indent=2, ensure_ascii=False)
-    ipynb_content.seek(0)
+    # 转换为 JSON 字节流
+    ipynb_content = BytesIO(json.dumps(notebook, indent=2, ensure_ascii=False).encode("utf-8"))
     return ipynb_content
 
 # Streamlit App 主体
@@ -60,17 +57,20 @@ st.write("上传一个 Markdown 文件，转换为 Jupyter Notebook 文件，并
 uploaded_file = st.file_uploader("选择 Markdown 文件", type=["md"])
 
 if uploaded_file is not None:
-    # 读取 Markdown 文件内容
-    md_content = uploaded_file.read().decode("utf-8")
-    
-    # 转换为 Notebook
-    ipynb_content = markdown_to_ipynb(md_content)
-    
-    # 生成下载链接
-    st.success("转换成功！点击下方按钮下载文件。")
-    st.download_button(
-        label="下载 Notebook 文件",
-        data=ipynb_content,
-        file_name="converted_notebook.ipynb",
-        mime="application/json"
-    )
+    try:
+        # 将上传的文件内容解码为字符串
+        md_content = uploaded_file.read().decode("utf-8")
+        
+        # 转换为 Notebook
+        ipynb_content = markdown_to_ipynb(md_content)
+        
+        # 下载按钮
+        st.success("转换成功！点击下方按钮下载文件。")
+        st.download_button(
+            label="下载 Notebook 文件",
+            data=ipynb_content,
+            file_name="converted_notebook.ipynb",
+            mime="application/json"
+        )
+    except Exception as e:
+        st.error(f"发生错误：{e}")
